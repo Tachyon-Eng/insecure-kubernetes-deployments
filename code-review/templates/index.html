@@ -8,9 +8,9 @@
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.2/lib/codemirror.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.2/mode/python/python.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/codemirror@5.65.2/lib/codemirror.css" rel="stylesheet">
-    <!-- Add marked.js for markdown rendering -->
+
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Add highlight.js for code syntax highlighting -->
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
     <style>
@@ -32,7 +32,7 @@
             text-align: center;
             margin-top: 10px;
         }
-        /* Markdown styles */
+
         .markdown-content {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
@@ -76,34 +76,34 @@
 <body class="bg-gray-100 min-h-screen">
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">Code Review</h1>
-        
+
         <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
             <h2 class="text-2xl font-semibold mb-4 text-gray-700">Analyze Your Code</h2>
-            
+
             <div class="mb-6">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="code">
                     Paste your code here:
                 </label>
                 <textarea id="code" class="w-full h-64 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
             </div>
-            
+
             <div class="mb-6">
                 <label class="block text-gray-700 text-sm font-bold mb-2">
                     Or upload a ZIP file:
                 </label>
                 <input type="file" id="file" accept=".zip" class="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
-            
+
             <button onclick="analyzeCode()" id="analyze-btn" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
                 Analyze Code
             </button>
         </div>
-        
+
         <div id="loading" class="hidden">
             <div class="loading-spinner"></div>
             <div class="loading-text">Analyzing your code... This may take a few minutes.</div>
         </div>
-        
+
         <div id="result" class="bg-white rounded-lg shadow-lg p-6 hidden">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-semibold text-gray-700">Analysis Results</h2>
@@ -116,7 +116,7 @@
     </div>
 
     <script>
-        // Initialize CodeMirror
+
         var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
             mode: "python",
             lineNumbers: true,
@@ -127,7 +127,7 @@
         let statusCheckInterval;
         let currentAnalysisId = null;
 
-        // Configure marked.js
+
         marked.setOptions({
             highlight: function(code, lang) {
                 if (lang && hljs.getLanguage(lang)) {
@@ -146,20 +146,20 @@
                         clearInterval(statusCheckInterval);
                         document.getElementById('loading').classList.add('hidden');
                         document.getElementById('analyze-btn').disabled = false;
-                        
+
                         const resultDiv = document.getElementById('result');
                         const resultContent = document.getElementById('result-content');
-                        
+
                         if (data.status === 'error') {
                             resultContent.innerHTML = `<div class="text-red-600">Error: ${data.result}</div>`;
                         } else {
                             resultContent.innerHTML = marked.parse(data.result);
-                            // Apply syntax highlighting to code blocks
+
                             resultContent.querySelectorAll('pre code').forEach((block) => {
                                 hljs.highlightBlock(block);
                             });
                         }
-                        
+
                         resultDiv.classList.remove('hidden');
                         currentAnalysisId = analysisId;
                     }
@@ -183,7 +183,7 @@
             const code = editor.getValue();
             const fileInput = document.getElementById('file');
             const formData = new FormData();
-            
+
             if (code.trim()) {
                 formData.append('code', code);
             } else if (fileInput.files.length > 0) {
@@ -193,7 +193,7 @@
                 return;
             }
 
-            // Show loading state
+
             document.getElementById('loading').classList.remove('hidden');
             document.getElementById('analyze-btn').disabled = true;
             document.getElementById('result').classList.add('hidden');
@@ -207,8 +207,8 @@
                 if (data.error) {
                     throw new Error(data.error);
                 }
-                
-                // Start polling for status
+
+
                 statusCheckInterval = setInterval(() => checkStatus(data.analysis_id), 2000);
             })
             .catch(error => {

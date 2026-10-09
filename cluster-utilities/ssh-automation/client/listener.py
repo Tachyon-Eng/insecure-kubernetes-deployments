@@ -14,19 +14,19 @@ class CallbackReceiver:
         self.connections = []
         self.running = False
         self.data_dir = "results"
-        
-        # Create data directory if it doesn't exist
+
+
         if not os.path.exists(self.data_dir):
             os.makedirs(self.data_dir)
-    
+
     def handle_client(self, client_socket, addr):
         print(f"[+] Connection from {addr[0]}:{addr[1]}")
-        
-        # Timestamp for the filename
+
+
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{self.data_dir}/callback_{addr[0]}_{timestamp}.txt"
-        
-        # Receive data with a timeout
+
+
         client_socket.settimeout(30)
         data = b""
         try:
@@ -39,15 +39,15 @@ class CallbackReceiver:
             print(f"[!] Receive timeout from {addr[0]}:{addr[1]}")
         except Exception as e:
             print(f"[!] Error receiving data from {addr[0]}:{addr[1]}: {e}")
-        
-        # Save received data to file
+
+
         try:
             if data:
                 with open(filename, 'wb') as f:
                     f.write(data)
                 print(f"[+] Saved {len(data)} bytes to {filename}")
-                
-                # Also print the data to console
+
+
                 try:
                     print("\n--- BEGIN RECEIVED DATA ---")
                     print(data.decode('utf-8', errors='replace'))
@@ -58,10 +58,10 @@ class CallbackReceiver:
                 print(f"[!] No data received from {addr[0]}:{addr[1]}")
         except Exception as e:
             print(f"[!] Error saving data: {e}")
-        
-        # Close the connection
+
+
         client_socket.close()
-    
+
     def start(self):
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -69,10 +69,10 @@ class CallbackReceiver:
             self.sock.bind((self.host, self.port))
             self.sock.listen(5)
             self.running = True
-            
+
             print(f"[*] Listener started on {self.host}:{self.port}")
             print(f"[*] Saving captured data to {os.path.abspath(self.data_dir)}")
-            
+
             while self.running:
                 try:
                     client, addr = self.sock.accept()
@@ -87,12 +87,12 @@ class CallbackReceiver:
                     if self.running:
                         print(f"[!] Error accepting connection: {e}")
                     break
-                    
+
         except Exception as e:
             print(f"[!] Error starting listener: {e}")
         finally:
             self.stop()
-    
+
     def stop(self):
         self.running = False
         if self.sock:
@@ -107,11 +107,11 @@ def main():
     parser.add_argument("--host", default="0.0.0.0", help="Host to listen on (default: 0.0.0.0)")
     parser.add_argument("--port", type=int, default=8080, help="Port to listen on (default: 8080)")
     args = parser.parse_args()
-    
+
     print("SSH integration callback receiver")
-    
+
     listener = CallbackReceiver(args.host, args.port)
-    
+
     try:
         listener.start()
     except KeyboardInterrupt:

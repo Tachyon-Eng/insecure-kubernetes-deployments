@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface CatPictureRepository extends JpaRepository<CatPicture, Integer> {
 
-    // Search the gallery by name.
+
     @Query(value = "SELECT * FROM cat_pictures WHERE name = ?1", nativeQuery = true)
     List<CatPicture> findByNameQuery(String name);
 }

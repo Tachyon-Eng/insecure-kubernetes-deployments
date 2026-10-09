@@ -2,27 +2,27 @@ const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = new Sequelize("sqlite:./data.db", {
   dialect: "sqlite",
   dialectOptions: {
-    multipleStatements: true, // Enable multiple statements
+    multipleStatements: true,
   },
 });
 
-// Define User model
+
 const User = sequelize.define("User", {
   username: DataTypes.STRING,
   email: DataTypes.STRING,
   target: DataTypes.JSON,
 });
 
-// Define Password model
+
 const Password = sequelize.define("Password", {
   userId: DataTypes.INTEGER,
   hashedPassword: DataTypes.STRING,
 });
 
-// Define the order model.
+
 const Order = sequelize.define("Order", {
   orderNumber: DataTypes.INTEGER,
-  userId: DataTypes.INTEGER, // Foreign key to associate with User
+  userId: DataTypes.INTEGER,
   product: DataTypes.STRING,
   amount: DataTypes.FLOAT,
   status: DataTypes.STRING,
@@ -33,21 +33,21 @@ const Order = sequelize.define("Order", {
 async function init() {
   await sequelize.sync({ force: true });
 
-  // Create users
+
   const users = await User.bulkCreate([
     { username: "admin", email: "admin@example.com", target: { admin: 1 } },
     { username: "user1", email: "user1@example.com", target: { user1: 1 } },
     { username: "user2", email: "user2@example.com", target: { user2: 1 } },
   ]);
 
-  // Create passwords
+
   await Password.bulkCreate([
     { userId: users[0].id, hashedPassword: "hashed_admin_password" },
     { userId: users[1].id, hashedPassword: "hashed_user1_password" },
     { userId: users[2].id, hashedPassword: "hashed_user2_password" },
   ]);
 
-  // Seed order records.
+
   await Order.bulkCreate([
     {
       orderNumber: 1001,

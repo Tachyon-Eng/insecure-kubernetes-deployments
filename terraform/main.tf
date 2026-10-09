@@ -2,8 +2,8 @@ provider "aws" {
   region = var.region
 }
 
-# Filter out local zones, which are not currently supported 
-# with managed node groups
+
+
 data "aws_availability_zones" "available" {
   filter {
     name   = "opt-in-status"
@@ -14,7 +14,7 @@ data "aws_availability_zones" "available" {
 locals {
   cluster_name = "application-suite-${random_string.suffix.result}"
 
-  # Common tags for all resources
+
   common_tags = {
     Environment = "development"
     Terraform   = "true"
@@ -67,7 +67,7 @@ module "eks" {
   subnet_ids                     = module.vpc.private_subnets
   cluster_endpoint_public_access = true
 
-  # Add security group configuration for nodes
+
   node_security_group_additional_rules = {
     ingress_self_all = {
       description = "Node to node all ports/protocols"
@@ -107,11 +107,11 @@ module "eks" {
       max_size       = 6
       desired_size   = 3
 
-      # Add these configurations for faster termination
+
       force_update_version = true
       force_delete         = true
 
-      # Reduce the time pods have to gracefully terminate
+
       timeouts = {
         create = "30m"
         update = "30m"
@@ -123,7 +123,7 @@ module "eks" {
   tags = local.common_tags
 }
 
-# https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/ 
+
 data "aws_iam_policy" "ebs_csi_policy" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
@@ -149,7 +149,7 @@ resource "aws_eks_addon" "ebs-csi" {
   tags                     = local.common_tags
 }
 
-# Create IAM role for AWS Load Balancer Controller
+
 module "lb_role" {
   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 
@@ -166,12 +166,12 @@ module "lb_role" {
   tags = local.common_tags
 }
 
-# Install AWS Load Balancer Controller
+
 resource "helm_release" "aws_load_balancer_controller" {
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  version    = "1.7.1" # Pin the version
+  version    = "1.7.1"
   namespace  = "kube-system"
 
   set {
@@ -196,11 +196,11 @@ resource "helm_release" "aws_load_balancer_controller" {
   depends_on = [module.eks]
 }
 
-# Add a time_sleep to wait for LB creation
+
 resource "time_sleep" "wait_for_lb" {
   create_duration = "30s"
   triggers = {
-    # This will change whenever the helm release changes
+
     helm_id = helm_release.aws_load_balancer_controller.id
   }
   depends_on = [
@@ -208,7 +208,7 @@ resource "time_sleep" "wait_for_lb" {
   ]
 }
 
-# Create security group for ingress-nginx load balancer
+
 resource "aws_security_group" "ingress_nginx" {
   name        = "ingress-nginx-lb"
   description = "Security group for ingress-nginx load balancer"
@@ -247,12 +247,12 @@ resource "aws_security_group" "ingress_nginx" {
   })
 }
 
-# Install ingress-nginx using Helm
+
 resource "helm_release" "ingress_nginx" {
   name             = "ingress-nginx"
   repository       = "https://kubernetes.github.io/ingress-nginx"
   chart            = "ingress-nginx"
-  version          = "4.9.0" # Pin the version
+  version          = "4.9.0"
   namespace        = "ingress-nginx"
   create_namespace = true
 

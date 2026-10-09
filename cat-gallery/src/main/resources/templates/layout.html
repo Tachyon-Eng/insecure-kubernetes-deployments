@@ -74,7 +74,7 @@
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
+
     <nav class="nav" th:if="${session.userId != null}">
         <div class="nav-content">
             <a th:href="@{/}" class="nav-brand">Cat App</a>
@@ -91,9 +91,9 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
+
     <div class="container">
-        <!-- Flash Messages -->
+
         <div class="messages" th:if="${message != null}">
             <div class="message success" th:text="${message}"></div>
         </div>
@@ -101,9 +101,9 @@
             <div class="message error" th:text="${error}"></div>
         </div>
 
-        <!-- Page Content -->
+
         <div th:replace="${content} ?: _">
-            <!-- Content will be inserted here -->
+
         </div>
     </div>
 </body>

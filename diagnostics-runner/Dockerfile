@@ -1,6 +1,6 @@
 FROM ubuntu:jammy
 
-# Install PowerShell
+
 RUN \
     apt-get update && \
     apt-get install -y wget apt-transport-https software-properties-common lsb-core && \
@@ -10,15 +10,15 @@ RUN \
     apt-get update && \
     apt-get install -y powershell
 
-# Install prerequisites
+
 RUN \
     apt-get install -y sudo make kmod gcc nmap clang iproute2 curl
 
-# Install the diagnostics module and its data files
+
 RUN \
     pwsh -Command "IEX (IWR 'https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/v2.0.0.0/install-atomicredteam.ps1' -UseBasicParsing); Install-AtomicRedTeam -getAtomics"
 
-# Import the module in interactive PowerShell sessions
+
 RUN \
     mkdir -p /root/.config/powershell && \
     echo 'Import-Module "/root/AtomicRedTeam/invoke-atomicredteam/Invoke-AtomicRedTeam.psd1" -Force' > /root/.config/powershell/profile.ps1

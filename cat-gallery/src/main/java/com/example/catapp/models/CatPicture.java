@@ -14,13 +14,13 @@ public class CatPicture {
     private String url;
     private int ownerId;
 
-    // Getters and Setters
+
 
     public int getId() {
         return id;
     }
 
-    // ... other getters and setters
+
 
     public void setId(int id) {
         this.id = id;

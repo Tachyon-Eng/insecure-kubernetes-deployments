@@ -16,25 +16,25 @@ public class CatPictureController {
 
     @GetMapping("/search")
     public String searchForm() {
-        return "search"; // Returns search.html
+        return "search";
     }
 
     @PostMapping("/search")
     public String search(@RequestParam String name, Model model) {
         List<CatPicture> results = catPictureRepository.findByNameQuery(name);
         model.addAttribute("pictures", results);
-        return "searchResults"; // Returns searchResults.html
+        return "searchResults";
     }
 
     @GetMapping("/delete")
     public String deleteForm() {
-        return "delete"; // Returns delete.html
+        return "delete";
     }
 
     @PostMapping("/delete")
     public String deletePicture(@RequestParam int id, Model model) {
         catPictureRepository.deleteById(id);
         model.addAttribute("message", "Picture deleted");
-        return "deleteResult"; // Returns deleteResult.html
+        return "deleteResult";
     }
 }

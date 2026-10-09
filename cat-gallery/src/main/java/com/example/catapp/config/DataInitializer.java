@@ -27,7 +27,7 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Seed user records.
+
         List<User> users = Arrays.asList(
             createUser("admin", "admin123"),
             createUser("john_doe", "password123"),
@@ -36,7 +36,7 @@ public class DataInitializer implements CommandLineRunner {
         );
         users.forEach(userRepository::save);
 
-        // Seed gallery records.
+
         List<CatPicture> pictures = Arrays.asList(
             createCatPicture("Fluffy", "https://placekitten.com/200/200", 1),
             createCatPicture("Whiskers", "https://placekitten.com/201/201", 2),
@@ -46,7 +46,7 @@ public class DataInitializer implements CommandLineRunner {
         );
         pictures.forEach(catPictureRepository::save);
 
-        // Seed comments.
+
         List<Comment> comments = Arrays.asList(
             createComment("What a beautiful cat! 😺", 1),
             createComment("I love the colors!", 2),

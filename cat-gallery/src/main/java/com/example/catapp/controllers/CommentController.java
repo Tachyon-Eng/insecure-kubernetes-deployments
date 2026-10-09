@@ -18,7 +18,7 @@ public class CommentController {
 
     @GetMapping("/addComment")
     public String addCommentForm() {
-        return "addComment"; // Returns addComment.html
+        return "addComment";
     }
 
     @PostMapping("/addComment")
@@ -27,14 +27,14 @@ public class CommentController {
         comment.setText(commentText);
         commentRepository.save(comment);
         model.addAttribute("message", "Comment added");
-        return "addCommentResult"; // Returns addCommentResult.html
+        return "addCommentResult";
     }
 
     @GetMapping("/comments")
     public String getComments(Model model) {
         List<Comment> comments = commentRepository.findAll();
         model.addAttribute("comments", comments);
-        return "comments"; // Returns comments.html
+        return "comments";
     }
 
     @PostMapping("/deleteComment")

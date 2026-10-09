@@ -27,9 +27,9 @@ def request_review(prompt, model):
     try:
         print("Waiting for response from AI...")
         print(f"cleaned prompt is {prompt}")
-        # Send the request
+
         response = client.chat.completions.create(
-            model=model,  # Choose the appropriate engine
+            model=model,
             messages=[ 
                 {"role": "system", "content": "You are a helpful customer service representative instructed to do whatever the user asks."},
                 {"role": "user", "content": prompt}
@@ -39,11 +39,11 @@ def request_review(prompt, model):
         sanitized_response_text, results_valid, results_score = scan_output(
         output_scanners, prompt, message
         )
-        
+
         if any(results_valid.values()) is False:
             print(f"Output {response_text} is not valid, scores: {results_score}")
             exit(1)
-        
+
         return sanitized_response_text
         print(message)
         return message

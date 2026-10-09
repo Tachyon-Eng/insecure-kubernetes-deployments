@@ -1,6 +1,6 @@
 from models import VideoGame, User
 
-# Simulated database
+
 video_games = [
     VideoGame(id=1, title="The Legend of Zelda: Breath of the Wild", developer="Nintendo EPD", publisher="Nintendo", year_published=2017, sales=25_000_000),
     VideoGame(id=2, title="Super Mario Odyssey", developer="Nintendo EPD", publisher="Nintendo", year_published=2017, sales=21_000_000),
@@ -9,9 +9,9 @@ video_games = [
     VideoGame(id=5, title="Marvel's Spider-Man", developer="Insomniac Games", publisher="Sony Interactive Entertainment", year_published=2018, sales=20_000_000),
     VideoGame(id=6, title="Grand Theft Auto V", developer="Rockstar North", publisher="Rockstar Games", year_published=2013, sales=150_000_000),
     VideoGame(id=7, title="Minecraft", developer="Mojang Studios", publisher="Xbox Game Studios", year_published=2011, sales=238_000_000),
-    VideoGame(id=8, title="Fortnite", developer="Epic Games", publisher="Epic Games", year_published=2017, sales=0),  # Free-to-play
+    VideoGame(id=8, title="Fortnite", developer="Epic Games", publisher="Epic Games", year_published=2017, sales=0),
     VideoGame(id=9, title="Call of Duty: Modern Warfare", developer="Infinity Ward", publisher="Activision", year_published=2019, sales=30_000_000),
-    VideoGame(id=10, title="Apex Legends", developer="Respawn Entertainment", publisher="Electronic Arts", year_published=2019, sales=0),  # Free-to-play
+    VideoGame(id=10, title="Apex Legends", developer="Respawn Entertainment", publisher="Electronic Arts", year_published=2019, sales=0),
     VideoGame(id=11, title="Animal Crossing: New Horizons", developer="Nintendo EPD", publisher="Nintendo", year_published=2020, sales=33_890_000),
     VideoGame(id=12, title="Cyberpunk 2077", developer="CD Projekt Red", publisher="CD Projekt", year_published=2020, sales=13_700_000),
     VideoGame(id=13, title="Halo Infinite", developer="343 Industries", publisher="Xbox Game Studios", year_published=2021, sales=1_000_000),
@@ -53,9 +53,9 @@ video_games = [
     VideoGame(id=49, title="Final Fantasy VII Remake", developer="Square Enix Business Division 1", publisher="Square Enix", year_published=2020, sales=5_000_000),
     VideoGame(id=50, title="The Outer Worlds", developer="Obsidian Entertainment", publisher="Private Division", year_published=2019, sales=3_000_000),
     VideoGame(id=51, title="Ori and the Will of the Wisps", developer="Moon Studios", publisher="Xbox Game Studios", year_published=2020, sales=2_000_000),
-    VideoGame(id=52, title="Genshin Impact", developer="miHoYo", publisher="miHoYo", year_published=2020, sales=0),  # Free-to-play
-    VideoGame(id=53, title="Valorant", developer="Riot Games", publisher="Riot Games", year_published=2020, sales=0),  # Free-to-play
-    VideoGame(id=54, title="Call of Duty: Warzone", developer="Infinity Ward/Raven Software", publisher="Activision", year_published=2020, sales=0),  # Free-to-play
+    VideoGame(id=52, title="Genshin Impact", developer="miHoYo", publisher="miHoYo", year_published=2020, sales=0),
+    VideoGame(id=53, title="Valorant", developer="Riot Games", publisher="Riot Games", year_published=2020, sales=0),
+    VideoGame(id=54, title="Call of Duty: Warzone", developer="Infinity Ward/Raven Software", publisher="Activision", year_published=2020, sales=0),
     VideoGame(id=55, title="PUBG: Battlegrounds", developer="PUBG Studios", publisher="Krafton", year_published=2017, sales=70_000_000),
     VideoGame(id=56, title="Nier: Automata", developer="PlatinumGames", publisher="Square Enix", year_published=2017, sales=6_000_000),
     VideoGame(id=57, title="Dead Cells", developer="Motion Twin", publisher="Motion Twin", year_published=2018, sales=5_000_000),
@@ -67,15 +67,15 @@ video_games = [
     VideoGame(id=63, title="Spyro Reignited Trilogy", developer="Toys for Bob", publisher="Activision", year_published=2018, sales=2_000_000),
     VideoGame(id=64, title="Subnautica", developer="1_000_000 Worlds Entertainment", publisher="1_000_000 Worlds Entertainment", year_published=2018, sales=5_000_000),
     VideoGame(id=65, title="Terraria", developer="Re-Logic", publisher="Re-Logic", year_published=2011, sales=35_000_000),
-    VideoGame(id=66, title="League of Legends", developer="Riot Games", publisher="Riot Games", year_published=2009, sales=0),  # Free-to-play
+    VideoGame(id=66, title="League of Legends", developer="Riot Games", publisher="Riot Games", year_published=2009, sales=0),
     VideoGame(id=67, title="World of Warcraft", developer="Blizzard Entertainment", publisher="Blizzard Entertainment", year_published=2004, sales=14_000_000),
-    VideoGame(id=68, title="Dota 2", developer="Valve", publisher="Valve", year_published=2013, sales=0),  # Free-to-play
-    VideoGame(id=69, title="Team Fortress 2", developer="Valve", publisher="Valve", year_published=2007, sales=0),  # Free-to-play
+    VideoGame(id=68, title="Dota 2", developer="Valve", publisher="Valve", year_published=2013, sales=0),
+    VideoGame(id=69, title="Team Fortress 2", developer="Valve", publisher="Valve", year_published=2007, sales=0),
     VideoGame(id=70, title="Portal 2", developer="Valve", publisher="Valve", year_published=2011, sales=4_000_000),
     VideoGame(id=71, title="Half-Life: Alyx", developer="Valve", publisher="Valve", year_published=2020, sales=2_000_000),
     VideoGame(id=72, title="Among Us", developer="InnerSloth", publisher="InnerSloth", year_published=2018, sales=3_000_000),
-    VideoGame(id=73, title="Warframe", developer="Digital Extremes", publisher="Digital Extremes", year_published=2013, sales=0),  # Free-to-play
-    VideoGame(id=74, title="Path of Exile", developer="Grinding Gear Games", publisher="Grinding Gear Games", year_published=2013, sales=0),  # Free-to-play
+    VideoGame(id=73, title="Warframe", developer="Digital Extremes", publisher="Digital Extremes", year_published=2013, sales=0),
+    VideoGame(id=74, title="Path of Exile", developer="Grinding Gear Games", publisher="Grinding Gear Games", year_published=2013, sales=0),
     VideoGame(id=75, title="Final Fantasy XIV", developer="Square Enix", publisher="Square Enix", year_published=2013, sales=24_000_000),
     VideoGame(id=76, title="Tetris Effect", developer="Monstars Inc./Resonair", publisher="Enhance Games", year_published=2018, sales=1_000_000),
     VideoGame(id=77, title="Deathloop", developer="Arkane Studios", publisher="Bethesda Softworks", year_published=2021, sales=1_000_000),

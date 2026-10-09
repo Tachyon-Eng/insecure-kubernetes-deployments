@@ -1,10 +1,10 @@
 import sqlite3
 
-# Create the database file
+
 db = sqlite3.connect("tutorial.db")
 cursor = db.cursor()
 
-# Create the users table
+
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,7 +13,7 @@ cursor.execute("""
     )
 """)
 
-# Insert some sample data
+
 users = [
     ('admin', 'password123'),
     ('user1', 'letmein'),
@@ -26,5 +26,5 @@ db.commit()
 
 print("Database initialized with sample data.")
 
-# Close the connection
+
 db.close()

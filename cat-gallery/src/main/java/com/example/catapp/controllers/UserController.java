@@ -8,7 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.servlet.http.HttpSession;
-    
+
 @Controller
 public class UserController {
 
@@ -23,7 +23,7 @@ public class UserController {
     @PostMapping("/register")
     public String register(@RequestParam String username, @RequestParam String password, 
                           RedirectAttributes redirectAttributes, HttpSession session) {
-        // Check if username already exists
+
         if (userRepository.findByUsername(username) != null) {
             redirectAttributes.addFlashAttribute("error", "Username already exists");
             return "redirect:/register";
@@ -33,18 +33,18 @@ public class UserController {
         user.setUsername(username);
         user.setPassword(password);
         userRepository.save(user);
-        
-        // Auto-login after registration
+
+
         session.setAttribute("userId", user.getId());
         session.setAttribute("username", user.getUsername());
-        
+
         redirectAttributes.addFlashAttribute("message", "Registration successful! Welcome " + username);
         return "redirect:/";
     }
 
     @GetMapping("/login")
     public String loginForm(HttpSession session, Model model) {
-        // Redirect if already logged in
+
         if (session.getAttribute("userId") != null) {
             return "redirect:/";
         }
@@ -56,7 +56,7 @@ public class UserController {
                        HttpSession session, Model model) {
         User user = userRepository.findByUsernameAndPassword(username, password);
         if (user != null) {
-            // Set session attributes
+
             session.setAttribute("userId", user.getId());
             session.setAttribute("username", user.getUsername());
             return "redirect:/";
@@ -72,19 +72,19 @@ public class UserController {
         return "redirect:/login";
     }
 
-    // View a profile selected by request parameter or session.
+
     @GetMapping("/profile")
     public String viewProfile(@RequestParam(required = false) Integer userId, 
                             HttpSession session, Model model) {
-        // If no userId provided, show current user's profile
+
         if (userId == null) {
             userId = (Integer) session.getAttribute("userId");
             if (userId == null) {
                 return "redirect:/login";
             }
         }
-        
-        // Load the selected profile.
+
+
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             model.addAttribute("error", "User not found");
@@ -98,19 +98,19 @@ public class UserController {
         return "layout";
     }
 
-    // Edit a profile selected by request parameter or session.
+
     @GetMapping("/editProfile")
     public String editProfileForm(@RequestParam(required = false) Integer userId, 
                                 HttpSession session, Model model) {
-        // If no userId provided, edit current user's profile
+
         if (userId == null) {
             userId = (Integer) session.getAttribute("userId");
             if (userId == null) {
                 return "redirect:/login";
             }
         }
-        
-        // Load the selected profile.
+
+
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             model.addAttribute("error", "User not found");
@@ -127,7 +127,7 @@ public class UserController {
     @PostMapping("/editProfile")
     public String editProfile(@RequestParam Integer userId, @RequestParam String username,
                             @RequestParam String password, RedirectAttributes redirectAttributes) {
-        // Apply the submitted profile fields.
+
         User user = userRepository.findById(userId).orElse(null);
         if (user != null) {
             user.setUsername(username);

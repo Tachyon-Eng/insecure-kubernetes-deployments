@@ -13,15 +13,15 @@ def query(payload, model_id, api_token):
     API_URL = f"https://api-inference.huggingface.co/models/{model_id}"
     response = requests.post(API_URL, headers=headers, json={"inputs": payload})
     response_text = response.text
-    
+
     sanitized_response_text, results_valid, results_score = scan_output(
         output_scanners, sanitized_prompt, response_text
     )
-    
+
     if any(results_valid.values()) is False:
         print(f"Output {response_text} is not valid, scores: {results_score}")
         exit(1)
-    
+
     return sanitized_response_text
 
 model_id = "Writer/palmyra-small"

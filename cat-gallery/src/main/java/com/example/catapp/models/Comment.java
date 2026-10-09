@@ -13,13 +13,13 @@ public class Comment {
     @Column(columnDefinition = "TEXT")
     private String text;
 
-    // Getters and Setters
+
 
     public int getId() {
         return id;
     }
 
-    // ... other getters and setters
+
 
     public void setId(int id) {
         this.id = id;

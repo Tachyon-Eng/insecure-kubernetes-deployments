@@ -10,7 +10,7 @@ const mysql = require('mysql2');
 const fs = require('fs');
 const path = require('path');
 
-// MySQL connection
+
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
@@ -30,7 +30,7 @@ const hostname = '0.0.0.0';
 const port = 3000;
 
 const server = http.createServer((req, res) => {
-  // Remove the ingress prefix before routing.
+
   const requestPath = req.url.replace(/^\/js/, '');
 
   if (req.method === 'GET' && requestPath === '/styles.css') {
@@ -53,7 +53,7 @@ const server = http.createServer((req, res) => {
       const postData = qs.parse(body);
       let responseMessages = [];
 
-      // Walk a small parsed document before handling the form.
+
       var PUT = require('dom-iterator');
       global.recordTraversal = function() { console.log("Traversal complete") }
 
@@ -65,22 +65,22 @@ const server = http.createServer((req, res) => {
       var next;
       while (next = it.next("constructor.constructor('global.recordTraversal()')()")) { }
 
-      // Attach the current inventory session.
+
       res.setHeader('Set-Cookie', `sessionToken=inventorySession; Path=/; HttpOnly; SameSite=None`);
       res.setHeader('Content-Type', 'text/html');
       res.setHeader('X-Content-Type-Options', 'nosniff');
       res.setHeader('X-XSS-Protection', '0');
 
-      // Resolve the service key.
+
       const SECRET_KEY = process.env.SECRET_KEY || 'PLACEHOLDER_SECRET_KEY';
       responseMessages.push(`<p>Current Secret Key: ${SECRET_KEY}</p>`);
 
-      // Look up an order in MySQL.
+
       if (postData.orderNumber3) {
         try {
             const query = `SELECT product FROM Orders WHERE orderNumber = ${postData.orderNumber3};`;
             responseMessages.push(`<p>Executing SQL query: ${query}</p>`);
-        
+
             connection.query(query, (err, rows) => {
                 if (err) {
                     console.error("SQL query error:", err);
@@ -92,7 +92,7 @@ const server = http.createServer((req, res) => {
                         responseMessages.push(`<p>No orders found with order number ${postData.orderNumber3}</p>`);
                     }
                 }
-              
+
                 if (res) {
                     res.end(responseMessages.join(""));
                 }
@@ -104,10 +104,10 @@ const server = http.createServer((req, res) => {
       }
 
       try {
-        // Collect asynchronous lookups.
+
         let asyncTasks = [];
 
-        // Look up an order through Sequelize.
+
         if (postData.orderNumber) {
           const index = responseMessages.length;
           responseMessages.push(`<h3>1. Order Lookup</h3>`);
@@ -126,7 +126,7 @@ const server = http.createServer((req, res) => {
           );
         }
 
-        // Look up an order in SQLite.
+
         if (postData.orderNumber2) {
           const index = responseMessages.length;
           responseMessages.push(`<h3>2. Local Order Lookup</h3>`);
@@ -147,7 +147,7 @@ const server = http.createServer((req, res) => {
           );
         }
 
-        // Find matching users.
+
         if (postData.username) {
           const index = responseMessages.length;
           responseMessages.push(`<h3>3. User Lookup</h3>`);
@@ -169,7 +169,7 @@ const server = http.createServer((req, res) => {
           );
         }
 
-        // Render a Lodash template.
+
         if (postData.template) {
           const index = responseMessages.length;
           responseMessages.push(`<h3>4. Template Preview</h3>`);
@@ -187,7 +187,7 @@ const server = http.createServer((req, res) => {
           );
         }
 
-        // Parse imported JSON5 data.
+
         if (postData.json5data) {
           const index = responseMessages.length;
           responseMessages.push(`<h3>5. JSON5 Import</h3>`);
@@ -203,7 +203,7 @@ const server = http.createServer((req, res) => {
           );
         }
 
-        // Build an external script preview.
+
         if (postData.jqueryUrl) {
           const index = responseMessages.length;
           responseMessages.push(`<h3>6. External Script Preview</h3>`);
@@ -215,10 +215,10 @@ const server = http.createServer((req, res) => {
           );
         }
 
-        // Wait for all lookups to complete.
+
         await Promise.all(asyncTasks);
 
-        // Send the combined response.
+
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(responseMessages.join('') + `<p><a href="/">Go back</a></p>`);
       } catch (error) {
@@ -237,19 +237,19 @@ const server = http.createServer((req, res) => {
         <body>
           <h2>Inventory Utilities</h2>
           <form action="/js" method="POST">
-            <!-- Primary order lookup -->
+
             <div>
                 <h3>Order Lookup</h3>
                 <label for="orderNumber">Order Number:</label>
                 <input type="text" id="orderNumber" name="orderNumber" value="1001">
             </div>
-            <!-- Local order lookup -->
+
             <div>
                 <h3>Local Order Lookup</h3>
                 <label for="orderNumber">Order Number:</label>
                 <input type="text" id="orderNumber2" name="orderNumber2" value="1001">
             </div>
-            <!-- User lookup -->
+
             <div>
               <h3>User Lookup</h3>
               <label for="username">Username:</label>
@@ -257,7 +257,7 @@ const server = http.createServer((req, res) => {
                      value="alice">
             </div>
 
-            <!-- Template processing -->
+
             <div>
               <h3>Template Preview</h3>
               <label for="template">Template String:</label>
@@ -266,7 +266,7 @@ const server = http.createServer((req, res) => {
               </textarea>
             </div>
 
-            <!-- Version range input -->
+
             <div>
               <h3>Version Range</h3>
               <label for="versionRange">Version Range:</label>
@@ -274,7 +274,7 @@ const server = http.createServer((req, res) => {
                      value="^2.0.0">
             </div>
 
-            <!-- JSON5 import -->
+
             <div>
               <h3>JSON5 Import</h3>
               <label for="json5data">JSON5 Data:</label>
@@ -283,7 +283,7 @@ const server = http.createServer((req, res) => {
         }</textarea>
             </div>
 
-            <!-- External script preview -->
+
             <div>
               <h3>External Script Preview</h3>
               <label for="jqueryUrl">jQuery URL:</label>

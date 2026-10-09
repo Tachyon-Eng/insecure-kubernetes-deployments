@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.7.3' // Use a compatible Spring Boot version
+    id 'org.springframework.boot' version '2.7.3'
     id 'io.spring.dependency-management' version '1.0.14.RELEASE'
 }
 
@@ -10,30 +10,30 @@ springBoot {
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11' // Set your Java version here
+sourceCompatibility = '11'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    // Spring Boot Starter Web
+
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    // Spring Data JPA
+
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 
-    // H2 Database (In-memory database)
+
     runtimeOnly 'com.h2database:h2'
 
-    // Thymeleaf Template Engine
+
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
-    // Lombok (Optional: Remove if not using Lombok)
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // Testing (Optional)
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

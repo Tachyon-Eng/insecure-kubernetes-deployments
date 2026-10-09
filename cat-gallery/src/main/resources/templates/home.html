@@ -117,7 +117,7 @@
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
+
     <nav class="nav" th:if="${session.userId != null}">
         <div class="nav-content">
             <a th:href="@{/}" class="nav-brand">Cat App</a>
@@ -134,9 +134,9 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
+
     <div class="container">
-        <!-- Welcome Section -->
+
         <div class="welcome-section">
             <h1>Welcome to Cat App</h1>
             <p th:if="${session.userId == null}">
@@ -151,7 +151,7 @@
             </div>
         </div>
 
-        <!-- Features Grid -->
+
         <div class="features">
             <div class="feature-card">
                 <h3>Share Cat Pictures</h3>
