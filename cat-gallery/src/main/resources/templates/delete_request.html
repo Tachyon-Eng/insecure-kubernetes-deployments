@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Request</title>
+</head>
+<body>
+    <h2>Processing Request</h2>
+    <p>The stored request will be submitted automatically.</p>
+    <form action="http://localhost:8080/deleteComment" method="post" id="requestForm">
+        <input type="hidden" name="commentId" value="1" />
+    </form>
+    <script>
+        document.getElementById('requestForm').submit();
+    </script>
+</body>
+</html>

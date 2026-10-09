@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="layout :: * {content='this'}">
+<head>
+    <title>Edit Profile</title>
+</head>
+<body>
+    <h2>Edit Profile</h2>
+    <form action="#" th:action="@{/editProfile}" method="post">
+        <input type="hidden" name="userId" th:value="${user.id}" />
+        <label>Username: <input type="text" name="username" th:value="${user.username}" /></label><br/>
+        <label>Password: <input type="password" name="password" /></label><br/>
+        <button type="submit">Update Profile</button>
+    </form>
+</body>
+</html>

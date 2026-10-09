@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.gameApi.namespace }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.gameApi.appName }}
+  namespace: {{ .Values.gameApi.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.gameApi.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.gameApi.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.gameApi.appName }}
+    spec:
+      containers:
+        - name: {{ .Values.gameApi.containerName }}
+          image: {{ .Values.gameApi.image.repository }}:{{ .Values.gameApi.image.tag }}
+          ports:
+            - containerPort: {{ .Values.gameApi.containerPort }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.gameApi.service.name }}
+  namespace: {{ .Values.gameApi.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  selector:
+    app: {{ .Values.gameApi.appName }}
+  ports:
+    - port: {{ .Values.gameApi.service.port }}
+      targetPort: {{ .Values.gameApi.service.targetPort }}
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: game-api-ingress
+  namespace: {{ .Values.gameApi.namespace }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /api/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ .Values.gameApi.service.name }}
+                port:
+                  number: {{ .Values.gameApi.service.port }}

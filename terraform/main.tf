@@ -12,13 +12,13 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  cluster_name = "securitytesting-${random_string.suffix.result}"
-  
+  cluster_name = "application-suite-${random_string.suffix.result}"
+
   # Common tags for all resources
   common_tags = {
-    Environment = "security-testing"
+    Environment = "development"
     Terraform   = "true"
-    Project     = "insecure-kubernetes-deployments"
+    Project     = "application-suite"
   }
 }
 
@@ -31,7 +31,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.0.0"
 
-  name = "security-vpc"
+  name = "application-suite-vpc"
 
   cidr = "10.0.0.0/16"
   azs  = slice(data.aws_availability_zones.available.names, 0, 3)
@@ -65,7 +65,7 @@ module "eks" {
 
   vpc_id                         = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
-  cluster_endpoint_public_access = true  # Enable public access for Terraform management
+  cluster_endpoint_public_access = true
 
   # Add security group configuration for nodes
   node_security_group_additional_rules = {
@@ -77,9 +77,8 @@ module "eks" {
       type        = "ingress"
       self        = true
     }
-    # Allow inbound traffic from allowed IP for testing
-    ingress_allowed_ip = {
-      description = "Allow inbound traffic from allowed IP for testing"
+    ingress_nodes = {
+      description = "Node ingress"
       protocol    = "-1"
       from_port   = 0
       to_port     = 0
@@ -102,16 +101,16 @@ module "eks" {
 
   eks_managed_node_groups = {
     main = {
-      name = "main-node-group"
+      name           = "main-node-group"
       instance_types = ["t3.xlarge"]
-      min_size     = 1
-      max_size     = 6
-      desired_size = 3
+      min_size       = 1
+      max_size       = 6
+      desired_size   = 3
 
       # Add these configurations for faster termination
       force_update_version = true
-      force_delete = true
-      
+      force_delete         = true
+
       # Reduce the time pods have to gracefully terminate
       timeouts = {
         create = "30m"
@@ -147,7 +146,7 @@ resource "aws_eks_addon" "ebs-csi" {
   addon_name               = "aws-ebs-csi-driver"
   addon_version            = "v1.20.0-eksbuild.1"
   service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
-  tags = local.common_tags
+  tags                     = local.common_tags
 }
 
 # Create IAM role for AWS Load Balancer Controller
@@ -172,7 +171,7 @@ resource "helm_release" "aws_load_balancer_controller" {
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  version    = "1.7.1"  # Pin the version
+  version    = "1.7.1" # Pin the version
   namespace  = "kube-system"
 
   set {
@@ -190,9 +189,9 @@ resource "helm_release" "aws_load_balancer_controller" {
     value = module.lb_role.iam_role_arn
   }
 
-  atomic = true
+  atomic          = true
   cleanup_on_fail = true
-  timeout = 300
+  timeout         = 300
 
   depends_on = [module.eks]
 }
@@ -229,12 +228,11 @@ resource "aws_security_group" "ingress_nginx" {
     cidr_blocks = [var.allowed_ip]
   }
 
-  # Allow health check traffic from AWS load balancer IPs
   ingress {
     from_port   = 10254
     to_port     = 10254
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # AWS load balancer health checks come from AWS IPs
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -254,21 +252,21 @@ resource "helm_release" "ingress_nginx" {
   name             = "ingress-nginx"
   repository       = "https://kubernetes.github.io/ingress-nginx"
   chart            = "ingress-nginx"
-  version          = "4.9.0"  # Pin the version
+  version          = "4.9.0" # Pin the version
   namespace        = "ingress-nginx"
   create_namespace = true
 
   values = [
     templatefile("${path.module}/ingress-nginx-values.yaml", {
-      cluster_name = module.eks.cluster_name
-      allowed_ip  = var.allowed_ip
+      cluster_name      = module.eks.cluster_name
+      allowed_ip        = var.allowed_ip
       security_group_id = aws_security_group.ingress_nginx.id
     })
   ]
 
-  atomic = true
+  atomic          = true
   cleanup_on_fail = true
-  timeout = 300
+  timeout         = 300
 
   depends_on = [
     module.eks,

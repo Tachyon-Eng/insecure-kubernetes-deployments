@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.inventoryWeb.namespace | default "inventory-web" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.inventoryWeb.service.name | default "inventory-web" }}
+  namespace: {{ .Values.inventoryWeb.namespace | default "inventory-web" }}
+spec:
+  selector:
+    app: {{ .Values.inventoryWeb.appName | default "inventory-web" }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.inventoryWeb.service.port | default 3000 }}
+      targetPort: {{ .Values.inventoryWeb.service.targetPort | default 3000 }}
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.inventoryWeb.appName | default "inventory-web" }}
+  namespace: {{ .Values.inventoryWeb.namespace | default "inventory-web" }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.inventoryWeb.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ .Values.inventoryWeb.appName | default "inventory-web" }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.inventoryWeb.appName | default "inventory-web" }}
+    spec:
+      containers:
+        - name: {{ .Values.inventoryWeb.containerName | default "inventory-web" }}
+          image: "{{ .Values.inventoryWeb.image.repository }}:{{ .Values.inventoryWeb.image.tag | default "latest" }}"
+          env:
+            - name: NODE_OPTIONS
+              value: "--perf-basic-prof --interpreted-frames-native-stack"
+          ports:
+            - containerPort: {{ .Values.inventoryWeb.containerPort | default 3000 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-web-internal
+  namespace: {{ .Values.inventoryWeb.namespace | default "inventory-web" }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: 3000
+  selector:
+    app: {{ .Values.inventoryWeb.appName | default "inventory-web" }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: inventory-web-ingress
+  namespace: {{ .Values.inventoryWeb.namespace | default "inventory-web" }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /js
+            pathType: Prefix
+            backend:
+              service:
+                name: inventory-web-internal
+                port:
+                  number: 3000

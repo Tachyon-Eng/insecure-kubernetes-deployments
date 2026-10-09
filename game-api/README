@@ -1,0 +1,38 @@
+# Game Catalog API
+
+The Game Catalog API provides catalog metadata, sales reporting, user profiles, feedback, and administrative catalog operations.
+
+## Product rules
+
+- Catalog metadata is public.
+- Sales figures are available to paid accounts.
+- Catalog changes are limited to administrators.
+- Users can view and update their own profiles.
+
+## Run locally
+
+Install the dependencies and start Uvicorn:
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+The API listens at `http://127.0.0.1:8000`. Interactive API documentation is available at the root path.
+
+## Main endpoints
+
+- `GET /games`
+- `GET /games/{game_id}/sales`
+- `POST /games`
+- `PUT /games/{game_id}`
+- `GET /search`
+- `POST /login`
+- `GET /users`
+- `GET /user_profile`
+- `POST /update_profile`
+- `POST /feedback`
+- `GET /fetch_url`
+- `GET /redirect`

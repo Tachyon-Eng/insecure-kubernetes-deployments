@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.diagnosticsRunner.appName }}
+  namespace: {{ .Values.diagnosticsRunner.namespace }}
+spec:
+  replicas: {{ .Values.diagnosticsRunner.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.diagnosticsRunner.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.diagnosticsRunner.appName }}
+    spec:
+      containers:
+        - name: {{ .Values.diagnosticsRunner.appName }}
+          image: "{{ .Values.diagnosticsRunner.image.repository }}:{{ .Values.diagnosticsRunner.image.tag }}"
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              value: AKIA2JAPX77RGLB664VE
+            - name: AWS_SECRET_ACCESS_KEY
+              value: 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
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: docker-socket
+      volumes:
+        - hostPath:
+            path: /var/run/docker.sock
+          name: docker-socket
+      serviceAccountName: diagnostics-runner-sa
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: diagnostics-runner
+  namespace: {{ .Values.diagnosticsRunner.namespace }}
+spec:
+  type: NodePort
+  selector:
+    app: diagnostics-runner
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+    - name: ssh
+      port: 22
+      targetPort: 22
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: diagnostics-runner-role
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "serviceaccounts", "serviceaccounts/token"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: diagnostics-runner-role-binding
+subjects:
+  - kind: ServiceAccount
+    name: diagnostics-runner-sa
+    namespace: {{ .Values.diagnosticsRunner.namespace }}
+    apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: diagnostics-runner-role
+  apiGroup: ""
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: diagnostics-runner-sa
+  namespace: {{ .Values.diagnosticsRunner.namespace }}

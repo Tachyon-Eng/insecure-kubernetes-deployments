@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Delete Picture</title>
+</head>
+<body>
+    <h2>Delete Cat Picture</h2>
+    <form action="#" th:action="@{/delete}" method="post">
+        <label>Picture ID: <input type="number" name="id" value="1" /></label><br/>
+        <button type="submit">Delete</button>
+    </form>
+</body>
+</html>

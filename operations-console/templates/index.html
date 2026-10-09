@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Operations Console{% endblock %}
+
+{% block content %}
+<h1 class="glitch-text">Operations Console</h1>
+<hr>
+
+<div class="console-panel">
+    <h2>System Command</h2>
+    <form action="{{ form_action }}" method="post">
+        <input type="text" name="command" value="ls -la" placeholder="Enter your command...">
+        <input type="submit" value="Execute Command">
+    </form>
+</div>
+
+<div class="console-panel">
+    <h2>Document Upload</h2>
+    <form action="{{ form_action }}" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload File">
+    </form>
+    <p>Select a document to store in the workspace.</p>
+</div>
+
+<div class="console-panel">
+    <h2>Database Query</h2>
+    <form action="{{ form_action }}" method="post">
+        <input type="text" name="query" value="SELECT * FROM users" placeholder="Enter your SQL query...">
+        <input type="submit" value="Execute Query">
+    </form>
+</div>
+
+<div class="console-panel">
+    <h2>Message Preview</h2>
+    <form action="{{ form_action }}" method="post">
+        <input type="text" name="message" value="Inventory updated" placeholder="Enter a message...">
+        <input type="submit" value="Preview Message">
+    </form>
+</div>
+
+<div class="console-panel">
+    <h2>XML Preview</h2>
+    <form action="{{ form_action }}" method="post">
+        <textarea name="xml" rows="5" placeholder="Enter an XML document..."><?xml version="1.0"?>
+<document>
+  <title>Quarterly inventory</title>
+</document></textarea>
+        <input type="submit" value="Parse XML">
+    </form>
+</div>
+
+<div class="console-panel">
+    <h2>Remote Request</h2>
+    <form action="{{ form_action }}" method="post">
+        <input type="text" name="endpoint" value="https://example.com/" placeholder="Enter target URL...">
+        <input type="submit" value="Send Request">
+    </form>
+</div>
+
+<div class="console-panel">
+    <h2>Account Lookup</h2>
+    <form action="{{ form_action }}" method="post">
+        <input type="text" name="username" value="user1" placeholder="Enter username...">
+        <input type="submit" value="Lookup User">
+    </form>
+</div>
+{% endblock %}

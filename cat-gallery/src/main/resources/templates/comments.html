@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Comments</title>
+</head>
+<body>
+    <h2>Comments</h2>
+    <ul>
+        <li th:each="comment : ${comments}">
+            <span th:utext="${comment.text}"></span>
+            <form action="#" th:action="@{/deleteComment}" method="post" style="display:inline;">
+                <input type="hidden" name="commentId" th:value="${comment.id}" />
+                <button type="submit">Delete</button>
+            </form>
+        </li>
+    </ul>
+</body>
+</html>

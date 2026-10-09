@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Comment</title>
+</head>
+<body>
+    <h2>Add Comment</h2>
+    <form action="#" th:action="@{/addComment}" method="post">
+        <label>Comment:</label><br/>
+        <textarea name="commentText" rows="4" cols="50"></textarea><br/>
+        <button type="submit">Add Comment</button>
+    </form>
+</body>
+</html>

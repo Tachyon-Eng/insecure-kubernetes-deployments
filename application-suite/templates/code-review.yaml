@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.codeReview.namespace | default "code-review" }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: code-review-keys
+  namespace: {{ .Values.codeReview.namespace | default "code-review" }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+type: Opaque
+data:
+  openai-api-key: {{ .Values.codeReview.env.openaiApiKey | b64enc }}
+  gemini-api-key: {{ .Values.codeReview.env.geminiApiKey | b64enc }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.codeReview.service.name | default "code-review" }}
+  namespace: {{ .Values.codeReview.namespace | default "code-review" }}
+spec:
+  selector:
+    app: {{ .Values.codeReview.appName | default "code-review" }}
+  ports:
+    - port: {{ .Values.codeReview.service.port | default 80 }}
+      targetPort: {{ .Values.codeReview.service.targetPort | default 5000 }}
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.codeReview.appName | default "code-review" }}
+  namespace: {{ .Values.codeReview.namespace | default "code-review" }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.codeReview.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ .Values.codeReview.appName | default "code-review" }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.codeReview.appName | default "code-review" }}
+    spec:
+      containers:
+        - name: {{ .Values.codeReview.containerName | default "code-review" }}
+          image: {{ .Values.codeReview.image.repository }}:{{ .Values.codeReview.image.tag | default "latest" }}
+          ports:
+            - containerPort: {{ .Values.codeReview.containerPort | default 5000 }}
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: code-review-keys
+                  key: openai-api-key
+                  optional: true
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: code-review-keys
+                  key: gemini-api-key
+                  optional: true
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: code-review-ingress
+  namespace: {{ .Values.codeReview.namespace | default "code-review" }}
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /ai/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ .Values.codeReview.service.name | default "code-review" }}
+                port:
+                  number: {{ .Values.codeReview.service.port | default 80 }}

@@ -1,0 +1,86 @@
+inventoryWeb:
+  namespace: inventory-web
+  appName: inventory-web
+  containerName: inventory-web
+  service:
+    name: inventory-web
+    port: 3000
+    targetPort: 3000
+  replicas: 1
+  image:
+    repository: confusedcrib/inventory-web
+    tag: latest
+  containerPort: 3000
+
+catGallery:
+  namespace: cat-gallery
+  appName: cat-gallery
+  containerName: cat-gallery
+  service:
+    name: cat-gallery
+    port: 8080
+    targetPort: 8080
+  replicas: 1
+  image:
+    repository: confusedcrib/cat-gallery
+    tag: latest
+  containerPort: 8080
+
+busybox:
+  namespace: busybox
+  replicas: 1
+  image: busybox:1.35.0
+  command: ["sleep", "3600"]
+
+operationsConsole:
+  namespace: operations-console
+  appName: operations-console
+  replicas: 1
+  image:
+    repository: confusedcrib/operations-console
+    tag: latest
+  ports:
+    http: 8080
+    ssh: 22
+
+diagnosticsRunner:
+  namespace: diagnostics-runner
+  appName: diagnostics-runner
+  replicas: 1
+  image:
+    repository: confusedcrib/diagnostics-runner
+    tag: 1
+  ports:
+    http: 8080
+    ssh: 22
+
+gameApi:
+  namespace: game-api
+  appName: game-api
+  containerName: game-api
+  service:
+    name: game-api
+    port: 8000
+    targetPort: 8000
+  replicas: 1
+  image:
+    repository: confusedcrib/game-api
+    tag: latest
+  containerPort: 8000
+
+codeReview:
+  namespace: code-review
+  appName: code-review
+  containerName: code-review
+  service:
+    name: code-review
+    port: 80
+    targetPort: 5000
+  replicas: 1
+  image:
+    repository: confusedcrib/code-review
+    tag: latest
+  containerPort: 5000
+  env:
+    openaiApiKey: ""
+    geminiApiKey: ""
